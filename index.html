@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>Combinar imágenes 2 en 1 con portada personalizada y nombre de PDF</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#2980b9" />
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(() => console.log('Service Worker registrado'))
+      .catch(err => console.log('Error al registrar Service Worker:', err));
+  }
+</script>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 700px;
+    margin: 20px auto;
+    padding: 20px;
+    background: linear-gradient(135deg, #2980b9, #6dd5fa);
+    color: #fff;
+    text-align: center;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  }
+  h1 {
+    margin-bottom: 20px;
+    font-weight: 700;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+  }
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  input[type="file"], input[type="text"], button {
+    width: 100%;
+    max-width: 400px;
+    margin: 10px auto 20px;
+    padding: 10px 15px;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  input[type="file"] {
+    background: #ffffffdd;
+    color: #333;
+    cursor: pointer;
+  }
+  input[type="text"] {
+    background: #ffffffee;
+    color: #222;
+  }
+  button {
+    background-color: #27ae60;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button:disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
+  }
+  button:hover:not(:disabled) {
+    background-color: #1e8449;
+  }
+  #status {
+    margin-top: 15px;
+    min-height: 1.5em;
+    font-weight: 600;
+    color: #f1c40f;
+    text-shadow: 0 0 5px rgba(241, 196, 15, 0.8);
+  }
+</style>
+</head>
+<body>
+<h1>Combinar imágenes 2 en 1 y generar PDF personalizado</h1>
+<label for="inputFiles">Selecciona las imágenes:</label>
+<input type="file" id="inputFiles" accept="image/*" multiple />
+<label for="pdfName">Nombre del archivo PDF (sin extensión):</label>
+<input type="text" id="pdfName" placeholder="Ejemplo: mis_imagenes_combinadas" />
+<button id="generatePdf" disabled>Generar PDF</button>
+<div id="status"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  const inputFiles = document.getElementById('inputFiles');
+  const pdfNameInput = document.getElementById('pdfName');
+  const generatePdfBtn = document.getElementById('generatePdf');
+  const status = document.getElementById('status');
+  let images = [];
+  function validarBoton() {
+    generatePdfBtn.disabled = images.length === 0 || pdfNameInput.value.trim() === '';
+  }
+  inputFiles.addEventListener('change', () => {
+    images = Array.from(inputFiles.files).filter(f => f.type.startsWith('image/'));
+    validarBoton();
+    status.textContent = images.length > 0 ? `${images.length} imagen(es) seleccionada(s)` : '';
+  });
+  pdfNameInput.addEventListener('input', () => {
+    validarBoton();
+  });
+  generatePdfBtn.addEventListener('click', async () => {
+    if (images.length === 0 || pdfNameInput.value.trim() === '') return;
+    generatePdfBtn.disabled = true;
+    status.textContent = 'Procesando imágenes...';
+    const { jsPDF } = window.jspdf;
+    const pdfDoc = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'landscape' });
+    const pageWidth = pdfDoc.internal.pageSize.getWidth();
+    const pageHeight = pdfDoc.internal.pageSize.getHeight();
+    function crearPortada() {
+      pdfDoc.setFillColor('#2980b9');
+      pdfDoc.rect(0, 0, pageWidth, pageHeight, 'F');
+      pdfDoc.setFillColor('#6dd5fa');
+      pdfDoc.rect(0, pageHeight * 0.6, pageWidth, pageHeight * 0.4, 'F');
+      pdfDoc.setTextColor('#fff');
+      pdfDoc.setFontSize(48);
+      pdfDoc.setFont('helvetica', 'bold');
+      const titulo = pdfNameInput.value.trim();
+      const textWidth = pdfDoc.getTextWidth(titulo);
+      pdfDoc.text(titulo, (pageWidth - textWidth) / 2, pageHeight / 2 - 40);
+      pdfDoc.setFontSize(20);
+      pdfDoc.setFont('helvetica', 'normal');
+      const sub = "Imágenes combinadas 2 en 1 - Generado con jsPDF";
+      const subWidth = pdfDoc.getTextWidth(sub);
+      pdfDoc.text(sub, (pageWidth - subWidth) / 2, pageHeight / 2 + 10);
+    }
+    function loadImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+    crearPortada();
+    for (let i = 0; i < images.length; i += 2) {
+      status.textContent = `Procesando imágenes ${i + 1} y ${i + 2 <= images.length ? i + 2 : ''} de ${images.length}...`;
+      try {
+        const img1 = await loadImage(images[i]);
+        const img2 = (i + 1 < images.length) ? await loadImage(images[i + 1]) : null;
+        const maxHeight = Math.max(img1.height, img2 ? img2.height : 0);
+        const totalWidth = img1.width + (img2 ? img2.width : 0);
+        const canvas = document.createElement('canvas');
+        canvas.width = totalWidth;
+        canvas.height = maxHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img1, 0, 0);
+        if (img2) ctx.drawImage(img2, img1.width, 0);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        if (i > 0) pdfDoc.addPage();
+        pdfDoc.addImage(dataUrl, 'JPEG', 0, 0, pageWidth, pageHeight);
+      } catch (e) {
+        console.error("Error procesando imágenes:", e);
+        alert('Error procesando imágenes. Revisa la consola.');
+        generatePdfBtn.disabled = false;
+        status.textContent = '';
+        return;
+      }
+    }
+    pdfDoc.save(pdfNameInput.value.trim() + '.pdf');
+    status.textContent = 'PDF generado y descargado.';
+    generatePdfBtn.disabled = false;
+  });
+</script>
+</body>
+</html>
