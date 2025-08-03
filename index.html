@@ -6,13 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#2980b9" />
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js')
-      .then(() => console.log('Service Worker registrado'))
-      .catch(err => console.log('Error al registrar Service Worker:', err));
-  }
-</script>
 <style>
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -81,38 +74,84 @@
 </head>
 <body>
 <h1>Combinar imágenes 2 en 1 y generar PDF personalizado</h1>
+
 <label for="inputFiles">Selecciona las imágenes:</label>
 <input type="file" id="inputFiles" accept="image/*" multiple />
+
 <label for="pdfName">Nombre del archivo PDF (sin extensión):</label>
 <input type="text" id="pdfName" placeholder="Ejemplo: mis_imagenes_combinadas" />
+
 <button id="generatePdf" disabled>Generar PDF</button>
+
 <div id="status"></div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <script>
+  // Registrar el Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(() => console.log('✅ Service Worker registrado'))
+      .catch(err => console.error('❌ Error al registrar Service Worker:', err));
+  }
+
+  // Botón para instalar la app manualmente
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    const btn = document.createElement('button');
+    btn.innerText = '📲 Instalar App';
+    btn.style.cssText = 'position:fixed;bottom:20px;left:20px;padding:10px 15px;background:#27ae60;color:white;border:none;border-radius:5px;font-size:16px;z-index:9999;';
+    document.body.appendChild(btn);
+
+    btn.addEventListener('click', () => {
+      btn.style.display = 'none';
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('✅ App instalada');
+        } else {
+          console.log('❌ Instalación cancelada');
+        }
+        deferredPrompt = null;
+      });
+    });
+  });
+
+  // Resto de la lógica PDF
   const inputFiles = document.getElementById('inputFiles');
   const pdfNameInput = document.getElementById('pdfName');
   const generatePdfBtn = document.getElementById('generatePdf');
   const status = document.getElementById('status');
+
   let images = [];
+
   function validarBoton() {
     generatePdfBtn.disabled = images.length === 0 || pdfNameInput.value.trim() === '';
   }
+
   inputFiles.addEventListener('change', () => {
     images = Array.from(inputFiles.files).filter(f => f.type.startsWith('image/'));
     validarBoton();
     status.textContent = images.length > 0 ? `${images.length} imagen(es) seleccionada(s)` : '';
   });
+
   pdfNameInput.addEventListener('input', () => {
     validarBoton();
   });
+
   generatePdfBtn.addEventListener('click', async () => {
     if (images.length === 0 || pdfNameInput.value.trim() === '') return;
     generatePdfBtn.disabled = true;
     status.textContent = 'Procesando imágenes...';
+
     const { jsPDF } = window.jspdf;
     const pdfDoc = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'landscape' });
     const pageWidth = pdfDoc.internal.pageSize.getWidth();
     const pageHeight = pdfDoc.internal.pageSize.getHeight();
+
     function crearPortada() {
       pdfDoc.setFillColor('#2980b9');
       pdfDoc.rect(0, 0, pageWidth, pageHeight, 'F');
@@ -130,6 +169,7 @@
       const subWidth = pdfDoc.getTextWidth(sub);
       pdfDoc.text(sub, (pageWidth - subWidth) / 2, pageHeight / 2 + 10);
     }
+
     function loadImage(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -143,24 +183,33 @@
         reader.readAsDataURL(file);
       });
     }
+
     crearPortada();
+
     for (let i = 0; i < images.length; i += 2) {
       status.textContent = `Procesando imágenes ${i + 1} y ${i + 2 <= images.length ? i + 2 : ''} de ${images.length}...`;
+
       try {
         const img1 = await loadImage(images[i]);
         const img2 = (i + 1 < images.length) ? await loadImage(images[i + 1]) : null;
+
         const maxHeight = Math.max(img1.height, img2 ? img2.height : 0);
         const totalWidth = img1.width + (img2 ? img2.width : 0);
+
         const canvas = document.createElement('canvas');
         canvas.width = totalWidth;
         canvas.height = maxHeight;
         const ctx = canvas.getContext('2d');
+
         ctx.fillStyle = '#fff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img1, 0, 0);
         if (img2) ctx.drawImage(img2, img1.width, 0);
+
         const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
         if (i > 0) pdfDoc.addPage();
+
         pdfDoc.addImage(dataUrl, 'JPEG', 0, 0, pageWidth, pageHeight);
       } catch (e) {
         console.error("Error procesando imágenes:", e);
@@ -170,6 +219,7 @@
         return;
       }
     }
+
     pdfDoc.save(pdfNameInput.value.trim() + '.pdf');
     status.textContent = 'PDF generado y descargado.';
     generatePdfBtn.disabled = false;
