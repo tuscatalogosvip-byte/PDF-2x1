@@ -3,8 +3,8 @@
   "short_name": "PDF 2x1",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#2980b9",
-  "theme_color": "#000a00",
+  "background_color": "#000508",
+  "theme_color": "#f5870a",
   "orientation": "portrait",
   "icons": [
     {
