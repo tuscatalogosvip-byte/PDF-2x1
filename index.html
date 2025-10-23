@@ -2,228 +2,245 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
-<title>Combinar imágenes 2 en 1 con portada personalizada y nombre de PDF</title>
+<title>Formulario Generador PDF Portada Vertical</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#2980b9" />
 <style>
   body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    max-width: 700px;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #050000, #030129);
+    color: white;
+    max-width: 900px;
     margin: 20px auto;
     padding: 20px;
-    background: linear-gradient(135deg, #050000, #030129);
-    color: #fff;
-    text-align: center;
-    border-radius: 12px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
   }
-  h1 {
-    margin-bottom: 20px;
-    font-weight: 700;
-    text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
-  }
-  label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-    font-size: 1rem;
-  }
-  input[type="file"], input[type="text"], button {
+  input, button {
     width: 100%;
     max-width: 400px;
-    margin: 10px auto 20px;
+    margin: 8px auto 16px;
     padding: 10px 15px;
-    font-size: 1rem;
     border-radius: 8px;
     border: none;
-    outline: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    font-size: 1rem;
   }
-  input[type="file"] {
-    background: #ffffffdd;
-    color: #333;
-    cursor: pointer;
+  input[type="file"] { background: #fff; color: #333; }
+  input[type="color"] { height: 40px; cursor: pointer; }
+  button { background: #eb1400; color: #fff; font-weight: bold; cursor: pointer; }
+  button:hover { background: #f51629; }
+  #status { margin-top: 10px; font-weight: 600; color: #f1c40f; }
+  #preview {
+    margin-top: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(to bottom, #2980b9 0%, #6dd5fa 100%);
+    border-radius: 16px;
+    padding: 40px 30px;
+    min-height: 320px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    overflow: hidden;
+    position: relative;
   }
-  input[type="text"] {
-    background: #73e3fa;
-    color: #222;
+  #preview .img-side {
+    flex: 0 0 40%;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
   }
-  button {
-    background-color: #eb1400;
-    color: #fff;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+  #preview .img-side img {
+    max-width: 90%;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    object-fit: contain;
   }
-  button:disabled {
-    background-color: #05ff6f;
-    cursor: not-allowed;
+  #preview .text-side {
+    flex: 0 0 55%;
+    text-align: center;
+    z-index: 1;
   }
-  button:hover:not(:disabled) {
-    background-color: #f51629;
-  }
-  #status {
-    margin-top: 15px;
-    min-height: 1.5em;
-    font-weight: 600;
-    color: #f1c40f;
-    text-shadow: 0 0 5px rgba(241, 196, 15, 0.8);
-  }
+  #preview h2 { margin: 0 0 8px; font-size: clamp(3.5rem, 5vw, 4rem); font-weight: 1200; line-height: 1.2; }
+  #preview h4 { margin: 0; font-size: clamp(2.2rem, 3vw, 3rem); font-weight: 1200; letter-spacing: 1px; }
 </style>
 </head>
 <body>
-<h1>Combinar imágenes 2 en 1 y generar PDF personalizado</h1>
 
-<label for="inputFiles">Selecciona las imágenes:</label>
+<form id="formGeneradorPDF">
+<h1>📘 Formulario Generador PDF Portada Vertical</h1>
+
+<label>Selecciona tus imágenes:</label>
 <input type="file" id="inputFiles" accept="image/*" multiple />
 
-<label for="pdfName">Nombre del archivo PDF (sin extensión):</label>
-<input type="text" id="pdfName" placeholder="Ejemplo: mis_imagenes_combinadas" />
+<label>Nombre del PDF:</label>
+<input type="text" id="pdfName" placeholder="Ej: Catalogo_2025" />
 
-<button id="generatePdf" disabled>Generar PDF</button>
+<label>Título inferior (pie de página):</label>
+<input type="text" id="footerTitle" placeholder="Ej: Price Shoes" />
 
+<label>Color fondo pie:</label>
+<input type="color" id="footerBg" value="#000000" />
+
+<label>Color texto pie:</label>
+<input type="color" id="footerText" value="#ffffff" />
+
+<hr />
+
+<label>Título portada:</label>
+<input type="text" id="coverTitle" placeholder="Ej: Catálogo Price Shoes Colección Exclusivos 2025 México" />
+
+<label>Subtítulo portada:</label>
+<input type="text" id="coverSubtitle" placeholder="NUEVO Colección Exclusiva 2025" value="NUEVO" />
+
+<label>Color superior portada:</label>
+<input type="color" id="colorTop" value="#2980b9" />
+
+<label>Color inferior portada:</label>
+<input type="color" id="colorBottom" value="#6dd5fa" />
+
+<hr />
+
+<label>Color Título:</label>
+<input type="color" id="titleColor" value="#000000" title="Color del título" />
+
+<label>Color Subtítulo:</label>
+<input type="color" id="subtitleColor" value="#FFFF00" title="Color del subtítulo" />
+
+<button id="generate" type="button" disabled>Generar PDF</button>
 <div id="status"></div>
+</form>
+
+<h2>Vista previa:</h2>
+<div id="preview">
+  <div class="img-side">
+    <img id="previewImg" src="" style="display:none" />
+  </div>
+  <div class="text-side">
+    <h2 id="previewTitle">Tu título aquí</h2>
+    <h4 id="previewSubtitle" style="color:#FFFF00">NUEVO Colección Exclusiva 2025</h4>
+  </div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <script>
-  // Registrar el Service Worker
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js')
-      .then(() => console.log('✅ Service Worker registrado'))
-      .catch(err => console.error('❌ Error al registrar Service Worker:', err));
+const { jsPDF } = window.jspdf;
+const inputFiles=document.getElementById("inputFiles");
+const pdfName=document.getElementById("pdfName");
+const footerTitle=document.getElementById("footerTitle");
+const footerBg=document.getElementById("footerBg");
+const footerText=document.getElementById("footerText");
+const coverTitle=document.getElementById("coverTitle");
+const coverSubtitle=document.getElementById("coverSubtitle");
+const colorTop=document.getElementById("colorTop");
+const colorBottom=document.getElementById("colorBottom");
+const titleColor=document.getElementById("titleColor");
+const subtitleColor=document.getElementById("subtitleColor");
+const preview=document.getElementById("preview");
+const previewImg=document.getElementById("previewImg");
+const previewTitle=document.getElementById("previewTitle");
+const previewSubtitle=document.getElementById("previewSubtitle");
+const generate=document.getElementById("generate");
+const status=document.getElementById("status");
+let images=[];
+
+function updatePreview(){
+  preview.style.background=`linear-gradient(to bottom, ${colorTop.value} 0%, ${colorBottom.value} 100%)`;
+  previewTitle.textContent=coverTitle.value.trim()||"Tu título aquí";
+  previewSubtitle.textContent=coverSubtitle.value.trim()||"NUEVO";
+  previewTitle.style.color=titleColor.value;
+  previewSubtitle.style.color=subtitleColor.value;
+  if(images.length>0){
+    const reader=new FileReader();
+    reader.onload=e=>{ previewImg.src=e.target.result; previewImg.style.display="block"; }
+    reader.readAsDataURL(images[0]);
+  } else previewImg.style.display="none";
+}
+
+[inputFiles,pdfName,footerTitle,coverTitle,coverSubtitle,colorTop,colorBottom,titleColor,subtitleColor].forEach(el=>
+  el.addEventListener("input",()=>{
+    if(inputFiles.files.length && pdfName.value && footerTitle.value) generate.disabled=false;
+    updatePreview();
+  })
+);
+
+inputFiles.addEventListener("change",()=>{ images=Array.from(inputFiles.files); updatePreview(); });
+document.getElementById("formGeneradorPDF").addEventListener("submit",e=>e.preventDefault());
+
+function splitWordsPerLine(text,numWords){
+  const words=text.split(" ");
+  let lines=[], line=[];
+  words.forEach(word=>{
+    line.push(word);
+    if(line.length===numWords){ lines.push(line.join(" ")); line=[]; }
+  });
+  if(line.length>0) lines.push(line.join(" "));
+  return lines;
+}
+
+generate.addEventListener("click",async()=>{
+  const pdf=new jsPDF({orientation:"landscape",unit:"pt",format:"a4"});
+  const w=pdf.internal.pageSize.getWidth();
+  const h=pdf.internal.pageSize.getHeight();
+  const footerH=40;
+  const bgTop=colorTop.value;
+  const bgBottom=colorBottom.value;
+  const title=coverTitle.value.trim()||pdfName.value;
+  let subtitle=coverSubtitle.value.trim()||"NUEVO";
+  const footer=footerTitle.value;
+  const bgFooter=footerBg.value, txtFooter=footerText.value;
+
+  // Fondo degradado
+  const gradCanvas=document.createElement("canvas");
+  gradCanvas.width=w; gradCanvas.height=h;
+  const ctx=gradCanvas.getContext("2d");
+  const grad=ctx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0,bgTop); grad.addColorStop(1,bgBottom);
+  ctx.fillStyle=grad; ctx.fillRect(0,0,w,h);
+
+  // Imagen mitad izquierda
+  const img=new Image(); img.src=URL.createObjectURL(images[0]); await img.decode();
+  const imgW=w*0.35, imgH=(img.height/img.width)*imgW, imgX=w*0.07, imgY=(h-imgH)/2;
+  ctx.drawImage(img,imgX,imgY,imgW,imgH);
+
+  pdf.addImage(gradCanvas.toDataURL("image/jpeg",0.9),"JPEG",0,0,w,h);
+
+  // Título: más arriba y un poco más a la derecha
+  let textX=w*0.7; // movido a la derecha
+  let startY=imgY + 20; // inicio de imagen + margen
+  pdf.setFont("helvetica","bold"); pdf.setFont(undefined,"1200"); pdf.setFontSize(65);
+  pdf.setTextColor(titleColor.value);
+  const titleLines=splitWordsPerLine(title,2);
+  titleLines.forEach(line=>{ pdf.text(line,textX,startY,{align:"center"}); startY+=70; });
+
+  // Subtítulo: más ancho y centrado debajo del título
+  startY+=15;
+  pdf.setFontSize(50); pdf.setFont(undefined,"1200"); pdf.setTextColor(subtitleColor.value);
+  const subtitleLines=splitWordsPerLine(subtitle,3); // ahora 3 palabras por línea para más ancho
+  subtitleLines.forEach(line=>{ pdf.text(line,textX,startY,{align:"center"}); startY+=60; });
+
+  // Páginas con imágenes y pie de página
+  for(let i=0;i<images.length;i+=2){
+    const img1=new Image(); img1.src=URL.createObjectURL(images[i]); await img1.decode();
+    const img2=i+1<images.length?new Image():null;
+    if(img2){ img2.src=URL.createObjectURL(images[i+1]); await img2.decode(); }
+
+    pdf.addPage();
+    pdf.setFillColor(bgFooter); pdf.rect(0,h-footerH,w,footerH,"F");
+    pdf.setTextColor(txtFooter); pdf.setFontSize(16); pdf.text(footer,w/2,h-footerH/2+6,{align:"center"});
+
+    const canvas=document.createElement("canvas"); const ctx2=canvas.getContext("2d");
+    const totalW=img1.width+(img2?img2.width:0); const totalH=Math.max(img1.height,img2?img2.height:0);
+    canvas.width=totalW; canvas.height=totalH;
+    ctx2.fillStyle="#fff"; ctx2.fillRect(0,0,totalW,totalH);
+    ctx2.drawImage(img1,0,0);
+    if(img2) ctx2.drawImage(img2,img1.width,0);
+    const merged=canvas.toDataURL("image/jpeg",0.9);
+    pdf.addImage(merged,"JPEG",0,0,w,h-footerH);
   }
 
-  // Botón para instalar la app manualmente
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-
-    const btn = document.createElement('button');
-    btn.innerText = '📲 Instalar App';
-    btn.style.cssText = 'position:fixed;bottom:20px;left:20px;padding:10px 15px;background:#27ae60;color:white;border:none;border-radius:5px;font-size:16px;z-index:9999;';
-    document.body.appendChild(btn);
-
-    btn.addEventListener('click', () => {
-      btn.style.display = 'none';
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === 'accepted') {
-          console.log('✅ App instalada');
-        } else {
-          console.log('❌ Instalación cancelada');
-        }
-        deferredPrompt = null;
-      });
-    });
-  });
-
-  // Resto de la lógica PDF
-  const inputFiles = document.getElementById('inputFiles');
-  const pdfNameInput = document.getElementById('pdfName');
-  const generatePdfBtn = document.getElementById('generatePdf');
-  const status = document.getElementById('status');
-
-  let images = [];
-
-  function validarBoton() {
-    generatePdfBtn.disabled = images.length === 0 || pdfNameInput.value.trim() === '';
-  }
-
-  inputFiles.addEventListener('change', () => {
-    images = Array.from(inputFiles.files).filter(f => f.type.startsWith('image/'));
-    validarBoton();
-    status.textContent = images.length > 0 ? `${images.length} imagen(es) seleccionada(s)` : '';
-  });
-
-  pdfNameInput.addEventListener('input', () => {
-    validarBoton();
-  });
-
-  generatePdfBtn.addEventListener('click', async () => {
-    if (images.length === 0 || pdfNameInput.value.trim() === '') return;
-    generatePdfBtn.disabled = true;
-    status.textContent = 'Procesando imágenes...';
-
-    const { jsPDF } = window.jspdf;
-    const pdfDoc = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'landscape' });
-    const pageWidth = pdfDoc.internal.pageSize.getWidth();
-    const pageHeight = pdfDoc.internal.pageSize.getHeight();
-
-    function crearPortada() {
-      pdfDoc.setFillColor('#2980b9');
-      pdfDoc.rect(0, 0, pageWidth, pageHeight, 'F');
-      pdfDoc.setFillColor('#6dd5fa');
-      pdfDoc.rect(0, pageHeight * 0.6, pageWidth, pageHeight * 0.4, 'F');
-      pdfDoc.setTextColor('#fff');
-      pdfDoc.setFontSize(48);
-      pdfDoc.setFont('helvetica', 'bold');
-      const titulo = pdfNameInput.value.trim();
-      const textWidth = pdfDoc.getTextWidth(titulo);
-      pdfDoc.text(titulo, (pageWidth - textWidth) / 2, pageHeight / 2 - 40);
-      pdfDoc.setFontSize(20);
-      pdfDoc.setFont('helvetica', 'normal');
-      const sub = "Imágenes combinadas 2 en 1 - Generado con jsPDF";
-      const subWidth = pdfDoc.getTextWidth(sub);
-      pdfDoc.text(sub, (pageWidth - subWidth) / 2, pageHeight / 2 + 10);
-    }
-
-    function loadImage(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = e => {
-          const img = new Image();
-          img.onload = () => resolve(img);
-          img.onerror = reject;
-          img.src = e.target.result;
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    }
-
-    crearPortada();
-
-    for (let i = 0; i < images.length; i += 2) {
-      status.textContent = `Procesando imágenes ${i + 1} y ${i + 2 <= images.length ? i + 2 : ''} de ${images.length}...`;
-
-      try {
-        const img1 = await loadImage(images[i]);
-        const img2 = (i + 1 < images.length) ? await loadImage(images[i + 1]) : null;
-
-        const maxHeight = Math.max(img1.height, img2 ? img2.height : 0);
-        const totalWidth = img1.width + (img2 ? img2.width : 0);
-
-        const canvas = document.createElement('canvas');
-        canvas.width = totalWidth;
-        canvas.height = maxHeight;
-        const ctx = canvas.getContext('2d');
-
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img1, 0, 0);
-        if (img2) ctx.drawImage(img2, img1.width, 0);
-
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-
-        if (i > 0) pdfDoc.addPage();
-
-        pdfDoc.addImage(dataUrl, 'JPEG', 0, 0, pageWidth, pageHeight);
-      } catch (e) {
-        console.error("Error procesando imágenes:", e);
-        alert('Error procesando imágenes. Revisa la consola.');
-        generatePdfBtn.disabled = false;
-        status.textContent = '';
-        return;
-      }
-    }
-
-    pdfDoc.save(pdfNameInput.value.trim() + '.pdf');
-    status.textContent = 'PDF generado y descargado.';
-    generatePdfBtn.disabled = false;
-  });
+  pdf.save((pdfName.value||"catalogo")+".pdf");
+  status.textContent="✅ PDF generado correctamente";
+});
 </script>
 </body>
 </html>
